@@ -4,9 +4,17 @@
 // Güvenli yaklaşım: tek sorumluluklu fonksiyonlar, doğrulama, anlamlı hata mesajları.
 
 use serde::Deserialize;
+use std::collections::HashMap;
 use std::env;
+use std::time::Duration;
 
 const ABSOLUTE_ZERO_C: f64 = -273.15;
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
+const FRANKFURTER_LATEST_URL: &str = "https://api.frankfurter.app/latest";
+const KIB: f64 = 1024.0;
+const MIB: f64 = 1024.0 * 1024.0;
+const GIB: f64 = 1024.0 * 1024.0 * 1024.0;
+const TIB: f64 = 1024.0 * 1024.0 * 1024.0 * 1024.0;
 
 struct Cli {
     /// Dönüştürülecek sayısal değer (örn: 5)
@@ -259,19 +267,19 @@ fn convert(value: f64, from: Unit, to: Unit) -> Result<f64, AppError> {
 
     if from.kind() != to.kind() {
         return Err(AppError::IncompatibleUnits(
-            format!("{from:?}"),
-            format!("{to:?}"),
+            from.short().to_string(),
+            to.short().to_string(),
         ));
     }
 
     match from.kind() {
         UnitKind::Length => {
-            let m = length_to_meter(from, value);
-            Ok(meter_to_length(to, m))
+            let m = value * length_factor_to_meter(from)?;
+            Ok(m / length_factor_to_meter(to)?)
         }
         UnitKind::Weight => {
-            let kg = weight_to_kg(from, value);
-            Ok(kg_to_weight(to, kg))
+            let kg = value * weight_factor_to_kg(from)?;
+            Ok(kg / weight_factor_to_kg(to)?)
         }
         UnitKind::Temperature => {
             let c = temp_to_c(from, value)?;
@@ -280,67 +288,47 @@ fn convert(value: f64, from: Unit, to: Unit) -> Result<f64, AppError> {
                     "sıcaklık mutlak sıfırın altında olamaz",
                 ));
             }
-            Ok(c_to_temp(to, c))
+            c_to_temp(to, c)
         }
         UnitKind::Data => {
             if value < 0.0 {
                 return Err(AppError::InvalidValue("veri boyutu negatif olamaz"));
             }
-            let b = data_to_bytes(from, value);
-            Ok(bytes_to_data(to, b))
+            let b = value * data_factor_to_bytes(from)?;
+            Ok(b / data_factor_to_bytes(to)?)
         }
     }
 }
 
-fn length_to_meter(unit: Unit, value: f64) -> f64 {
+fn length_factor_to_meter(unit: Unit) -> Result<f64, AppError> {
     match unit {
-        Unit::Mm => value / 1000.0,
-        Unit::Cm => value / 100.0,
-        Unit::M => value,
-        Unit::Km => value * 1000.0,
-        Unit::Inch => value * 0.0254,
-        Unit::Ft => value * 0.3048,
-        Unit::Yard => value * 0.9144,
-        Unit::Mile => value * 1609.344,
-        _ => unreachable!("length unit bekleniyordu"),
+        Unit::Mm => Ok(0.001),
+        Unit::Cm => Ok(0.01),
+        Unit::M => Ok(1.0),
+        Unit::Km => Ok(1000.0),
+        Unit::Inch => Ok(0.0254),
+        Unit::Ft => Ok(0.3048),
+        Unit::Yard => Ok(0.9144),
+        Unit::Mile => Ok(1609.344),
+        _ => Err(AppError::IncompatibleUnits(
+            unit.short().to_string(),
+            "length".to_string(),
+        )),
     }
 }
 
-fn meter_to_length(unit: Unit, meter: f64) -> f64 {
+fn weight_factor_to_kg(unit: Unit) -> Result<f64, AppError> {
     match unit {
-        Unit::Mm => meter * 1000.0,
-        Unit::Cm => meter * 100.0,
-        Unit::M => meter,
-        Unit::Km => meter / 1000.0,
-        Unit::Inch => meter / 0.0254,
-        Unit::Ft => meter / 0.3048,
-        Unit::Yard => meter / 0.9144,
-        Unit::Mile => meter / 1609.344,
-        _ => unreachable!("length unit bekleniyordu"),
-    }
-}
-
-fn weight_to_kg(unit: Unit, value: f64) -> f64 {
-    match unit {
-        Unit::Mg => value / 1_000_000.0,
-        Unit::G => value / 1000.0,
-        Unit::Kg => value,
-        Unit::Ton => value * 1000.0,
-        Unit::Oz => value * 0.028_349_523_125,
-        Unit::Lb => value * 0.453_592_37,
-        _ => unreachable!("weight unit bekleniyordu"),
-    }
-}
-
-fn kg_to_weight(unit: Unit, kg: f64) -> f64 {
-    match unit {
-        Unit::Mg => kg * 1_000_000.0,
-        Unit::G => kg * 1000.0,
-        Unit::Kg => kg,
-        Unit::Ton => kg / 1000.0,
-        Unit::Oz => kg / 0.028_349_523_125,
-        Unit::Lb => kg / 0.453_592_37,
-        _ => unreachable!("weight unit bekleniyordu"),
+        Unit::Mg => Ok(0.000_001),
+        Unit::G => Ok(0.001),
+        Unit::Kg => Ok(1.0),
+        Unit::Ton => Ok(1000.0),
+        Unit::Oz => Ok(0.028_349_523_125),
+        Unit::Lb => Ok(0.453_592_37),
+        _ => Err(AppError::IncompatibleUnits(
+            unit.short().to_string(),
+            "weight".to_string(),
+        )),
     }
 }
 
@@ -355,46 +343,40 @@ fn temp_to_c(unit: Unit, value: f64) -> Result<f64, AppError> {
                 Ok(value + ABSOLUTE_ZERO_C)
             }
         }
-        _ => unreachable!("temperature unit bekleniyordu"),
+        _ => Err(AppError::IncompatibleUnits(
+            unit.short().to_string(),
+            "temperature".to_string(),
+        )),
     }
 }
 
-fn c_to_temp(unit: Unit, c: f64) -> f64 {
+fn c_to_temp(unit: Unit, c: f64) -> Result<f64, AppError> {
     match unit {
-        Unit::C => c,
-        Unit::F => c * (9.0 / 5.0) + 32.0,
-        Unit::K => c + 273.15,
-        _ => unreachable!("temperature unit bekleniyordu"),
+        Unit::C => Ok(c),
+        Unit::F => Ok(c * (9.0 / 5.0) + 32.0),
+        Unit::K => Ok(c - ABSOLUTE_ZERO_C),
+        _ => Err(AppError::IncompatibleUnits(
+            unit.short().to_string(),
+            "temperature".to_string(),
+        )),
     }
 }
 
-fn data_to_bytes(unit: Unit, value: f64) -> f64 {
+fn data_factor_to_bytes(unit: Unit) -> Result<f64, AppError> {
     match unit {
-        Unit::B => value,
-        Unit::KB => value * 1_000.0,
-        Unit::MB => value * 1_000_000.0,
-        Unit::GB => value * 1_000_000_000.0,
-        Unit::TB => value * 1_000_000_000_000.0,
-        Unit::KiB => value * 1024.0,
-        Unit::MiB => value * 1024.0_f64.powi(2),
-        Unit::GiB => value * 1024.0_f64.powi(3),
-        Unit::TiB => value * 1024.0_f64.powi(4),
-        _ => unreachable!("data unit bekleniyordu"),
-    }
-}
-
-fn bytes_to_data(unit: Unit, bytes: f64) -> f64 {
-    match unit {
-        Unit::B => bytes,
-        Unit::KB => bytes / 1_000.0,
-        Unit::MB => bytes / 1_000_000.0,
-        Unit::GB => bytes / 1_000_000_000.0,
-        Unit::TB => bytes / 1_000_000_000_000.0,
-        Unit::KiB => bytes / 1024.0,
-        Unit::MiB => bytes / 1024.0_f64.powi(2),
-        Unit::GiB => bytes / 1024.0_f64.powi(3),
-        Unit::TiB => bytes / 1024.0_f64.powi(4),
-        _ => unreachable!("data unit bekleniyordu"),
+        Unit::B => Ok(1.0),
+        Unit::KB => Ok(1_000.0),
+        Unit::MB => Ok(1_000_000.0),
+        Unit::GB => Ok(1_000_000_000.0),
+        Unit::TB => Ok(1_000_000_000_000.0),
+        Unit::KiB => Ok(KIB),
+        Unit::MiB => Ok(MIB),
+        Unit::GiB => Ok(GIB),
+        Unit::TiB => Ok(TIB),
+        _ => Err(AppError::IncompatibleUnits(
+            unit.short().to_string(),
+            "data".to_string(),
+        )),
     }
 }
 
@@ -402,7 +384,7 @@ fn bytes_to_data(unit: Unit, bytes: f64) -> f64 {
 struct FrankfurterResponse {
     amount: f64,
     base: String,
-    rates: std::collections::HashMap<String, f64>,
+    rates: HashMap<String, f64>,
 }
 
 fn looks_like_currency(code: &str) -> bool {
@@ -426,12 +408,17 @@ fn convert_currency(value: f64, from: &str, to: &str) -> Result<f64, AppError> {
         return Ok(value);
     }
 
-    let url = format!(
-        "https://api.frankfurter.app/latest?amount={}&from={}&to={}",
-        value, from_up, to_up
-    );
+    let client = reqwest::blocking::Client::builder()
+        .timeout(REQUEST_TIMEOUT)
+        .build()
+        .map_err(|e| AppError::Network(e.to_string()))?;
 
-    let resp = reqwest::blocking::get(&url).map_err(|e| AppError::Network(e.to_string()))?;
+    let resp = client
+        .get(format!(
+            "{FRANKFURTER_LATEST_URL}?amount={value}&from={from_up}&to={to_up}"
+        ))
+        .send()
+        .map_err(|e| AppError::Network(e.to_string()))?;
 
     if !resp.status().is_success() {
         return Err(AppError::Api(format!("HTTP durum kodu: {}", resp.status())));
