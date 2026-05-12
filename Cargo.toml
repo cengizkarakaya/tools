@@ -2,7 +2,20 @@
 name = "tools"
 version = "0.1.0"
 edition = "2024"
+description = "Çok amaçlı Rust CLI araç koleksiyonu"
+license = "MIT"
+repository = "https://github.com/cengizkarakaya/tools"
+homepage = "https://github.com/cengizkarakaya/tools"
+keywords = ["rust", "tools", "cli"]
+categories = ["command-line-utilities"]
+authors = ["Cengiz Karakaya <cengizkarakaya@hotmail.com>"]
+rust-version = "1.95"
+
+[workspace]
+members = ["lib"]
+
 
 [dependencies]
 clap = "4.6.1"
-serde = "1.0.228"
+reqwest = { version = "0.13.3", features = ["blocking", "json", "rustls"] }
+serde = { version = "1.0.228", features = ["derive"] }

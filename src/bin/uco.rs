@@ -3,28 +3,60 @@
 // örnek: uco 100 usd try
 // Güvenli yaklaşım: tek sorumluluklu fonksiyonlar, doğrulama, anlamlı hata mesajları.
 
-use clap::Parser;
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::env;
 
 const ABSOLUTE_ZERO_C: f64 = -273.15;
 
-#[derive(Parser, Debug)]
-#[command(
-    name = "uco",
-    version,
-    about = "Kolay kullanımlı birim/döviz dönüştürücü (örn: 5 km m, 100 usd try)",
-    long_about = "Tür belirtmeden birim veya para birimi dönüştürür.\n\nKullanım: uco <değer> <kaynak_birim> <hedef_birim>",
-    after_help = "Kısa birim listesi (çakışmasız):\n  Uzunluk: mm cm m km in ft yd mi\n  Ağırlık: mg g kg ton oz lb\n  Sıcaklık: c f k\n  Veri   : b kb mb gb tb kib mib gib tib\n  Döviz  : Frankfurter API kodları (usd, eur, try, gbp, jpy, ... )\n\nÖrnekler:\n  uco 5 km m\n  uco 10 lb kg\n  uco 32 f c\n  uco 128 mib mb\n  uco 100 usd try\n\nNot: cargo ile çalıştırırken argüman ayıracı gerekir:\n  cargo run --bin uco -- 5 km m"
-)]
 struct Cli {
     /// Dönüştürülecek sayısal değer (örn: 5)
-    #[arg(allow_hyphen_values = true)]
     value: f64,
     /// Kaynak birim/kod (örn: km, usd)
     from: String,
     /// Hedef birim/kod (örn: m, try)
     to: String,
+}
+
+impl Cli {
+    fn parse() -> Self {
+        match Self::try_parse_from(env::args()) {
+            Ok(cli) => cli,
+            Err(e) => {
+                eprintln!("Hata: {e}");
+                eprintln!("Kullanım: uco <değer> <kaynak_birim> <hedef_birim>");
+                std::process::exit(2);
+            }
+        }
+    }
+
+    fn try_parse_from<I, T>(args: I) -> Result<Self, AppError>
+    where
+        I: IntoIterator<Item = T>,
+        T: Into<String>,
+    {
+        let mut it = args.into_iter().map(Into::into);
+        let _program = it.next();
+
+        let value_raw = it
+            .next()
+            .ok_or(AppError::InvalidValue("değer argümanı eksik"))?;
+        let from = it
+            .next()
+            .ok_or(AppError::InvalidValue("kaynak birim argümanı eksik"))?;
+        let to = it
+            .next()
+            .ok_or(AppError::InvalidValue("hedef birim argümanı eksik"))?;
+
+        if it.next().is_some() {
+            return Err(AppError::InvalidValue("fazla argüman verildi"));
+        }
+
+        let value = value_raw
+            .parse::<f64>()
+            .map_err(|_| AppError::InvalidValue("değer sayıya çevrilemedi"))?;
+
+        Ok(Self { value, from, to })
+    }
 }
 
 #[derive(Debug)]
@@ -370,7 +402,7 @@ fn bytes_to_data(unit: Unit, bytes: f64) -> f64 {
 struct FrankfurterResponse {
     amount: f64,
     base: String,
-    rates: HashMap<String, f64>,
+    rates: std::collections::HashMap<String, f64>,
 }
 
 fn looks_like_currency(code: &str) -> bool {
@@ -386,12 +418,12 @@ fn convert_currency(value: f64, from: &str, to: &str) -> Result<f64, AppError> {
     let from_up = from.trim().to_ascii_uppercase();
     let to_up = to.trim().to_ascii_uppercase();
 
-    if from_up == to_up {
-        return Ok(value);
-    }
-
     if !looks_like_currency(&from_up) || !looks_like_currency(&to_up) {
         return Err(AppError::UnknownUnit(format!("{from} veya {to}")));
+    }
+
+    if from_up == to_up {
+        return Ok(value);
     }
 
     let url = format!(
@@ -407,7 +439,6 @@ fn convert_currency(value: f64, from: &str, to: &str) -> Result<f64, AppError> {
 
     let parsed: FrankfurterResponse = resp.json().map_err(|e| AppError::Api(e.to_string()))?;
 
-    // API cevabındaki temel alanları doğruluyoruz.
     if !parsed.base.eq_ignore_ascii_case(&from_up) {
         return Err(AppError::Api("beklenmeyen base değeri döndü".to_string()));
     }
