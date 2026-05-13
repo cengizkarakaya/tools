@@ -6,6 +6,7 @@ description = "Çok amaçlı Rust CLI araç koleksiyonu"
 license = "MIT"
 repository = "https://github.com/cengizkarakaya/tools"
 homepage = "https://github.com/cengizkarakaya/tools"
+default-run = "tools"
 keywords = ["rust", "tools", "cli"]
 categories = ["command-line-utilities"]
 authors = ["Cengiz Karakaya <cengizkarakaya@hotmail.com>"]
@@ -22,3 +23,5 @@ serde = { version = "1.0.228", features = ["derive"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_NetworkManagement_WiFi"] }
+
+
