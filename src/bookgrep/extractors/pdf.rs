@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{cell::Cell, panic, path::Path};
 
 use crate::bookgrep::{
     error::{BookgrepError, Result},
@@ -6,7 +6,32 @@ use crate::bookgrep::{
     model::{DocumentFormat, DocumentMetadata, ExtractedDocument, TextSection},
 };
 
-use super::TextExtractor;
+use super::{TextExtractor, ocr};
+
+const OCR_MIN_TEXT_CHARS: usize = 64;
+
+thread_local! {
+    static PDF_EXTRACTION_ACTIVE: Cell<bool> = const { Cell::new(false) };
+}
+
+pub(crate) fn is_pdf_extraction_active() -> bool {
+    PDF_EXTRACTION_ACTIVE.with(Cell::get)
+}
+
+struct PdfExtractionGuard;
+
+impl PdfExtractionGuard {
+    fn new() -> Self {
+        PDF_EXTRACTION_ACTIVE.with(|active| active.set(true));
+        Self
+    }
+}
+
+impl Drop for PdfExtractionGuard {
+    fn drop(&mut self) {
+        PDF_EXTRACTION_ACTIVE.with(|active| active.set(false));
+    }
+}
 
 pub struct PdfExtractor;
 
@@ -16,12 +41,23 @@ impl TextExtractor for PdfExtractor {
         path: &Path,
         include_sidecar_metadata: bool,
     ) -> Result<ExtractedDocument> {
-        let text = pdf_extract::extract_text(path)
-            .map_err(|_| BookgrepError::PdfExtraction(path.to_path_buf()))?;
+        // Bazı PDF font/encoding hatalarında `pdf-extract` hata döndürmek yerine panic atabiliyor.
+        let text_result = panic::catch_unwind(|| {
+            let _guard = PdfExtractionGuard::new();
+            pdf_extract::extract_text(path)
+        });
+        let mut text = match text_result {
+            Ok(Ok(text)) => text,
+            Ok(Err(_)) | Err(_) => String::new(),
+        };
+        if should_use_ocr_fallback(&text) {
+            text = ocr::extract_pdf_text(path)?;
+        }
         if text.trim().is_empty() {
             return Err(BookgrepError::PdfExtraction(path.to_path_buf()));
         }
 
+        // PDF metni gelir; metadata gerekiyorsa aynı adlı `.opf` yan dosyasından okunur.
         let metadata = if include_sidecar_metadata {
             OpfMetadataReader
                 .read_sidecar_metadata(path)?
@@ -39,7 +75,29 @@ impl TextExtractor for PdfExtractor {
     }
 }
 
+fn should_use_ocr_fallback(text: &str) -> bool {
+    text.split_whitespace().collect::<String>().chars().count() < OCR_MIN_TEXT_CHARS
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn uses_ocr_for_empty_or_tiny_text() {
+        assert!(should_use_ocr_fallback(""));
+        assert!(should_use_ocr_fallback("page 1"));
+    }
+
+    #[test]
+    fn keeps_normal_pdf_text_without_ocr() {
+        let text = "Rust ownership and borrowing ".repeat(10);
+        assert!(!should_use_ocr_fallback(&text));
+    }
+}
+
 fn split_pdf_pages(text: &str) -> Vec<TextSection> {
+    // `pdf_extract` sayfaları form-feed (`\x0C`) karakteriyle ayırabilir.
     let parts: Vec<_> = text.split('\x0C').collect();
     if parts.len() > 1 {
         parts

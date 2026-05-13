@@ -41,6 +41,7 @@ pub fn parse_listfolder_documents(
     raw: &str,
     extensions: Option<&[DocumentFormat]>,
 ) -> Result<Vec<DocumentRef>> {
+    // API yanıtı önce küçük DTO struct'larına ayrıştırılır, sonra ortak DocumentRef modeline çevrilir.
     let response: ListFolderResponse =
         serde_json::from_str(raw).map_err(|err| BookgrepError::PCloud(err.to_string()))?;
     if response.result != 0 {
@@ -63,6 +64,7 @@ fn collect_documents(
     documents: &mut Vec<DocumentRef>,
 ) {
     if metadata.isfolder {
+        // pCloud klasör ağacı iç içe geldiği için çocukları recursive toplarız.
         for child in &metadata.contents {
             collect_documents(child, extensions, documents);
         }
@@ -121,6 +123,7 @@ mod live {
             extensions: Option<Vec<DocumentFormat>>,
             config: &Config,
         ) -> Result<Self> {
+            // Token konfigürasyondan klonlanır; PCloudSource kendi sahipliğinde saklar.
             let token = config
                 .pcloud_token
                 .clone()
@@ -165,6 +168,7 @@ mod live {
         }
 
         fn download_to_cache(&self, document: &DocumentRef) -> Result<PathBuf> {
+            // Cache anahtarı dosya yolu ve bilinen metadata ile değişiklikleri ayırt eder.
             let extension = document
                 .source_path
                 .extension()
@@ -181,6 +185,7 @@ mod live {
                 return Ok(cache_path);
             }
 
+            // Cache yoksa veya geçersizse dosya indirilip sonraki aramalarda kullanılır.
             let link = self.get_file_link(document)?;
             let bytes = self
                 .client

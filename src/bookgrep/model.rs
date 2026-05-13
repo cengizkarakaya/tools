@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::cli::SearchArgs;
 
+// Ortak veri tipleri burada tutulur; extractor, source ve output katmanları aynı modeli paylaşır.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DocumentFormat {
@@ -14,6 +15,7 @@ pub enum DocumentFormat {
 
 impl DocumentFormat {
     pub fn from_path(path: &Path) -> Option<Self> {
+        // `?` burada fonksiyon `Option` döndürdüğü için uzantı yoksa `None` ile çıkar.
         match path
             .extension()?
             .to_string_lossy()
@@ -84,16 +86,19 @@ pub struct SearchOptions {
     pub regex: bool,
     pub context: usize,
     pub limit: Option<usize>,
+    pub extract_timeout_secs: u64,
 }
 
 impl From<&SearchArgs> for SearchOptions {
     fn from(value: &SearchArgs) -> Self {
         Self {
+            // `String` sahipli veri olduğu için CLI argümanından yeni bir kopya alınır.
             query: value.query.clone(),
             case_sensitive: value.case_sensitive,
             regex: value.regex,
             context: value.context,
             limit: value.limit,
+            extract_timeout_secs: value.extract_timeout,
         }
     }
 }

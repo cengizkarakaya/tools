@@ -12,6 +12,7 @@ pub struct OpfMetadataReader;
 
 impl MetadataReader for OpfMetadataReader {
     fn read_sidecar_metadata(&self, document_path: &Path) -> Result<Option<DocumentMetadata>> {
+        // `let Some(...) = ... else` deseni, `None` durumunu erken ve okunaklı döndürür.
         let Some(path) = find_sidecar_opf(document_path) else {
             return Ok(None);
         };
@@ -22,6 +23,7 @@ impl MetadataReader for OpfMetadataReader {
 }
 
 pub fn find_sidecar_opf(document_path: &Path) -> Option<std::path::PathBuf> {
+    // Önce `kitap.pdf` -> `kitap.opf` gibi aynı isimli yan dosyayı deneriz.
     let same_stem = document_path.with_extension("opf");
     if same_stem.exists() {
         return Some(same_stem);
@@ -37,6 +39,7 @@ pub fn find_sidecar_opf(document_path: &Path) -> Option<std::path::PathBuf> {
         });
 
     let first = opfs.next()?;
+    // Klasörde tek OPF varsa onu kullanırız; birden fazlaysa yanlış eşleşme riskinden kaçınırız.
     if opfs.next().is_none() {
         Some(first)
     } else {
@@ -84,6 +87,7 @@ pub fn parse_opf_metadata(raw: &str) -> Result<DocumentMetadata> {
 }
 
 fn parse_meta_node(node: roxmltree::Node<'_, '_>, metadata: &mut DocumentMetadata) {
+    // `roxmltree::Node<'_, '_>` XML ağacını ödünç alır; burada node'u saklamıyor, sadece okuyoruz.
     let name = node
         .attribute("name")
         .or_else(|| node.attribute("property"));

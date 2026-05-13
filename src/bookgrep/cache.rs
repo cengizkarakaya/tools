@@ -2,7 +2,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
- 
+
 use directories::ProjectDirs;
 use sha2::{Digest, Sha256};
 
@@ -15,6 +15,7 @@ pub struct Cache {
 
 impl Cache {
     pub fn new(root: Option<PathBuf>) -> Result<Self> {
+        // Çağıran özel klasör vermezse işletim sisteminin uygun cache dizini kullanılır.
         let root = match root {
             Some(root) => root,
             None => ProjectDirs::from("com", "cengiz", "bookgrep")
@@ -27,6 +28,7 @@ impl Cache {
     }
 
     pub fn path_for_key(&self, key: &str, extension: &str) -> PathBuf {
+        // Uzun veya özel karakterli uzak yolları dosya adına çevirmek için hash kullanılır.
         let mut hasher = Sha256::new();
         hasher.update(key.as_bytes());
         let digest = format!("{:x}", hasher.finalize());
@@ -34,6 +36,7 @@ impl Cache {
     }
 
     pub fn is_valid(path: &Path, expected_size: Option<u64>) -> bool {
+        // Dosya yoksa veya metadata okunamazsa cache geçersiz sayılır.
         let Ok(metadata) = fs::metadata(path) else {
             return false;
         };

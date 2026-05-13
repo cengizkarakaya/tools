@@ -14,6 +14,8 @@ pub enum BookgrepError {
     EpubExtraction(PathBuf),
     #[error("metadata could not be read: {0}")]
     Metadata(String),
+    #[error("OCR fallback could not run: {0}")]
+    Ocr(String),
     #[error("source could not be read: {0}")]
     Source(String),
     #[error("invalid search expression: {0}")]

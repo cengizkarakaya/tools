@@ -28,6 +28,7 @@ impl TextExtractor for EpubExtractor {
             .map_err(|err| BookgrepError::EpubExtraction(err.to_string().into()))?;
         let mut archive = ZipArchive::new(file)
             .map_err(|err| BookgrepError::EpubExtraction(err.to_string().into()))?;
+        // EPUB aslında ZIP'tir; önce container.xml içinden ana OPF dosyasının yolu bulunur.
         let opf_path = read_container_opf_path(&mut archive)?;
         let opf_raw = read_zip_text(&mut archive, &opf_path)?;
         let metadata = parse_opf_metadata(&opf_raw)?;
@@ -101,6 +102,7 @@ fn extract_sections<R: std::io::Read + std::io::Seek>(
 }
 
 fn manifest_items<'a>(doc: &'a Document<'a>) -> HashMap<&'a str, &'a str> {
+    // Dönen `&str` değerler XML dokümanının içini ödünç alır; bu yüzden lifetime `'a` görünür.
     doc.descendants()
         .filter(|node| node.has_tag_name("item"))
         .filter_map(|node| Some((node.attribute("id")?, node.attribute("href")?)))
@@ -140,6 +142,7 @@ fn xhtml_to_text(raw: &str) -> String {
     if let Ok(doc) = Document::parse(raw) {
         let mut parts = Vec::new();
         for node in doc.descendants().filter(|node| node.is_text()) {
+            // script/style içeriği kitap metni sayılmadığı için atlanır.
             if node
                 .ancestors()
                 .any(|parent| matches!(parent.tag_name().name(), "script" | "style"))
@@ -157,6 +160,7 @@ fn xhtml_to_text(raw: &str) -> String {
         return parts.join(" ");
     }
 
+    // XML bozuksa kaba bir etiket temizleme ile yine de metin çıkarmayı deneriz.
     let mut text = String::with_capacity(raw.len());
     let mut inside_tag = false;
     for ch in raw.chars() {

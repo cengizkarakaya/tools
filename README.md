@@ -34,6 +34,18 @@ Metadata ile çıktı:
 cargo run --bin bookgrep -- search --path ./books --query "borrowing" --recursive --metadata
 ```
 
+Taranmış PDF'lerde OCR fallback varsayılan olarak açıktır:
+
+```powershell
+cargo run --bin bookgrep -- search --path ./books --query "borrowing" --recursive
+```
+
+Kelimenin geçtiği tüm yerleri ayrıca görmek için:
+
+```powershell
+cargo run --bin bookgrep -- search --path ./books --query "borrowing" --recursive --matches
+```
+
 Sadece EPUB arama:
 
 ```powershell
@@ -105,9 +117,41 @@ Kitap.opf
 
 Aynı klasörde tek bir `.opf` dosyası varsa o da metadata adayı kabul edilir. Başlık, yazar, yayıncı, tarih, dil, identifier, subject/tag, açıklama ve Calibre series bilgisi okunmaya çalışılır.
 
+## OCR Fallback
+
+`bookgrep`, PDF dosyalarında önce normal metin çıkarma yolunu dener. Çıkan metin boşsa veya çok kısaysa PDF'in taranmış/resim tabanlı olabileceğini varsayar ve OCR fallback çalıştırır. OCR metni mevcut arama pipeline'ına normal PDF metni gibi girer; EPUB araması ve metin içeren PDF davranışı değişmez.
+
+OCR dış araçlarla çalışır:
+
+- `tesseract`: görüntüden metin okur.
+- `pdftoppm`: Poppler aracı; PDF sayfalarını PNG görüntülere çevirir.
+
+Windows'ta kurulum notları:
+
+1. Tesseract OCR kurun ve `tesseract.exe` dosyasının bulunduğu klasörü `PATH` değişkenine ekleyin.
+2. Poppler for Windows kurun ve `pdftoppm.exe` dosyasının bulunduğu `bin` klasörünü `PATH` değişkenine ekleyin.
+3. Yeni bir PowerShell açıp araçların göründüğünü kontrol edin:
+
+```powershell
+tesseract --version
+pdftoppm -v
+```
+
+Araçlar yoksa OCR gereken PDF'lerde anlaşılır bir uyarı verilir ve ilgili PDF atlanır:
+
+```text
+OCR fallback unavailable missing command(s): tesseract, pdftoppm...
+```
+
+PDF başına OCR/extraction süresi varsayılan olarak 10 saniye ile sınırlıdır:
+
+```powershell
+cargo run --bin bookgrep -- search --path ./books --query "borrowing" --recursive --extract-timeout 20
+```
+
 ## Bilinen Sınırlamalar
 
-OCR desteklenmez. Taranmış görsel PDF dosyalarında metin bulunamayabilir.
+OCR kalitesi, PDF sayfa görüntüsünün kalitesine ve sistemde kurulu Tesseract dil verilerine bağlıdır.
 
 PDF text extraction Rust ekosisteminde her PDF için kusursuz değildir. Şifreli, bozuk veya görsel ağırlıklı PDF dosyalarında anlamlı hata döndürülür.
 

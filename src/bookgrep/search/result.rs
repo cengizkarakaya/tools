@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::bookgrep::model::{DocumentFormat, DocumentMetadata, ExtractedDocument, SearchMatch};
 
+// İç akışta kullanılan zengin sonuç modeli: belge bilgisi ve eşleşmeler birlikte taşınır.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchResult {
     pub document: ExtractedDocument,
@@ -19,6 +20,7 @@ impl SearchResult {
 
 #[derive(Debug, Serialize)]
 pub struct JsonSearchResult<'a> {
+    // `'a`, JSON görünümünün veriyi kopyalamadan `SearchResult` içinden ödünç aldığını gösterir.
     pub file: String,
     pub format: DocumentFormat,
     pub title: Option<&'a str>,

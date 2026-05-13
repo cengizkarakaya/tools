@@ -13,6 +13,7 @@ pub struct Matcher {
 
 impl Matcher {
     pub fn new(options: &SearchOptions) -> Result<Self> {
+        // Regex modu kapalıysa kullanıcı girdisi düz metin kabul edilir ve özel karakterler kaçırılır.
         let pattern = if options.regex {
             options.query.clone()
         } else {
@@ -31,7 +32,9 @@ impl Matcher {
     pub fn find_matches(&self, document: &ExtractedDocument) -> Vec<SearchMatch> {
         let mut matches = Vec::new();
         for section in &document.sections {
+            // `find_iter` eşleşmeleri ödünç alınmış metin üzerinde döndürür; metni kopyalamadan gezer.
             for hit in self.regex.find_iter(&section.text) {
+                // Rust string dilimleri UTF-8 karakter sınırlarında kesilmelidir.
                 let before_start =
                     floor_char_boundary(&section.text, hit.start().saturating_sub(self.context));
                 let after_end = ceil_char_boundary(
@@ -61,6 +64,7 @@ impl Matcher {
 }
 
 fn floor_char_boundary(text: &str, mut index: usize) -> usize {
+    // Context byte sayısıyla hesaplanır; çok baytlı karakterin ortasına denk gelirse geri sararız.
     while !text.is_char_boundary(index) {
         index -= 1;
     }
@@ -68,6 +72,7 @@ fn floor_char_boundary(text: &str, mut index: usize) -> usize {
 }
 
 fn ceil_char_boundary(text: &str, mut index: usize) -> usize {
+    // Bitiş tarafında aynı sorunu ileri giderek çözeriz.
     while !text.is_char_boundary(index) {
         index += 1;
     }
@@ -103,6 +108,7 @@ mod tests {
             regex: false,
             context: 11,
             limit: None,
+            extract_timeout_secs: 10,
         };
         let matcher = Matcher::new(&options).expect("matcher");
         let matches = matcher.find_matches(&doc("Rust's Ownership Model guarantees safety."));
@@ -120,6 +126,7 @@ mod tests {
             regex: false,
             context: 5,
             limit: None,
+            extract_timeout_secs: 10,
         };
         let matcher = Matcher::new(&options).expect("matcher");
         assert!(matcher.find_matches(&doc("Ownership ownership")).len() == 1);
@@ -133,6 +140,7 @@ mod tests {
             regex: true,
             context: 0,
             limit: None,
+            extract_timeout_secs: 10,
         };
         let matcher = Matcher::new(&options).expect("matcher");
         assert_eq!(matcher.find_matches(&doc("ownership")).len(), 1);

@@ -13,6 +13,7 @@ pub struct Config {
 impl Config {
     pub fn load() -> anyhow::Result<Self> {
         let mut config = Self::default();
+        // Önce kullanıcı konfigürasyon dosyası okunur; dosya yoksa varsayılanlar kalır.
         if let Some(project_dirs) = ProjectDirs::from("com", "cengiz", "bookgrep") {
             let config_path = project_dirs.config_dir().join("config.json");
             if config_path.exists() {
@@ -23,6 +24,7 @@ impl Config {
             }
         }
 
+        // Ortam değişkeni varsa dosyadaki token'ı bilinçli olarak ezer.
         if let Ok(token) = env::var("BOOKGREP_PCLOUD_TOKEN")
             && !token.trim().is_empty()
         {

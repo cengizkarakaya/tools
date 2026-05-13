@@ -4,20 +4,30 @@ use anyhow::Context;
 
 use crate::bookgrep::search::result::{JsonSearchResult, SearchResult};
 
+const RESET: &str = "\x1b[0m";
+const BOLD: &str = "\x1b[1m";
+const DIM: &str = "\x1b[2m";
+const BLUE: &str = "\x1b[34m";
+const GREEN: &str = "\x1b[32m";
+const CYAN: &str = "\x1b[36m";
+const YELLOW: &str = "\x1b[33m";
+const MAGENTA: &str = "\x1b[35m";
+
 #[derive(Debug, Clone, Copy)]
 pub enum OutputFormat {
-    Terminal,
+    Terminal { show_matches: bool },
     Json,
 }
 
 pub fn write_results(results: &[SearchResult], format: OutputFormat) -> anyhow::Result<()> {
     match format {
-        OutputFormat::Terminal => write_terminal(results),
+        OutputFormat::Terminal { show_matches } => write_terminal(results, show_matches),
         OutputFormat::Json => write_json(results),
     }
 }
 
 fn write_json(results: &[SearchResult]) -> anyhow::Result<()> {
+    // JSON çıktısı için sonuçları ödünç alan hafif bir görünüm tipine dönüştürüyoruz.
     let json: Vec<_> = results.iter().map(JsonSearchResult::from).collect();
     let stdout = io::stdout();
     serde_json::to_writer_pretty(stdout.lock(), &json).context("could not write JSON output")?;
@@ -25,38 +35,30 @@ fn write_json(results: &[SearchResult]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn write_terminal(results: &[SearchResult]) -> anyhow::Result<()> {
+fn write_terminal(results: &[SearchResult], show_matches: bool) -> anyhow::Result<()> {
     let mut stdout = io::stdout().lock();
+    // Iterator zinciri tüm belgelerdeki eşleşme sayılarını tek toplamda birleştirir.
     let count: usize = results.iter().map(|result| result.matches.len()).sum();
     if count == 0 && results.len() == 1 {
         write_document_info(&mut stdout, &results[0])?;
         return Ok(());
     }
 
-    writeln!(stdout, "Found {count} matches")?;
+    if results.is_empty() {
+        writeln!(stdout, "{YELLOW}{BOLD}No matching books found{RESET}")?;
+        return Ok(());
+    }
+
+    writeln!(
+        stdout,
+        "{GREEN}{BOLD}Found {} matching books{RESET} {DIM}({count} total matches){RESET}",
+        results.len()
+    )?;
     writeln!(stdout)?;
     for (index, result) in results.iter().enumerate() {
-        writeln!(
-            stdout,
-            "[{}] {}",
-            index + 1,
-            result
-                .document
-                .source_path
-                .file_name()
-                .and_then(|name| name.to_str())
-                .unwrap_or("<unknown>")
-        )?;
-        write_metadata(&mut stdout, result)?;
-        for hit in &result.matches {
-            if let Some(page) = hit.page {
-                writeln!(stdout, "Page: {page}")?;
-            }
-            if let Some(chapter) = &hit.chapter {
-                writeln!(stdout, "Chapter: {chapter}")?;
-            }
-            writeln!(stdout, "Match:")?;
-            writeln!(stdout, "... {}{}{} ...", hit.before, hit.text, hit.after)?;
+        write_book_summary(&mut stdout, index + 1, result)?;
+        if show_matches {
+            write_matches(&mut stdout, result)?;
         }
         writeln!(stdout)?;
     }
@@ -64,30 +66,106 @@ fn write_terminal(results: &[SearchResult]) -> anyhow::Result<()> {
 }
 
 fn write_document_info(mut writer: impl Write, result: &SearchResult) -> anyhow::Result<()> {
-    writeln!(writer, "File: {}", result.document.source_path.display())?;
-    writeln!(writer, "Format: {:?}", result.document.format)?;
+    writeln!(
+        writer,
+        "{GREEN}{BOLD}Document info{RESET} {DIM}{} sections{RESET}",
+        result.document.sections.len()
+    )?;
     write_metadata(&mut writer, result)?;
-    writeln!(writer, "Sections: {}", result.document.sections.len())?;
+    write_field(
+        &mut writer,
+        "File",
+        &result.document.source_path.display().to_string(),
+    )?;
+    write_field(
+        &mut writer,
+        "Format",
+        &format!("{:?}", result.document.format),
+    )?;
     Ok(())
 }
 
 fn write_metadata(mut writer: impl Write, result: &SearchResult) -> anyhow::Result<()> {
     let metadata = &result.document.metadata;
     if let Some(title) = &metadata.title {
-        writeln!(writer, "Title: {title}")?;
+        write_field(&mut writer, "Title", title)?;
     }
     if !metadata.authors.is_empty() {
-        writeln!(writer, "Author: {}", metadata.authors.join(", "))?;
+        write_field(&mut writer, "Author", &metadata.authors.join(", "))?;
     }
     if let Some(language) = &metadata.language {
-        writeln!(writer, "Language: {language}")?;
+        write_field(&mut writer, "Language", language)?;
     }
     if let Some(publisher) = &metadata.publisher {
-        writeln!(writer, "Publisher: {publisher}")?;
+        write_field(&mut writer, "Publisher", publisher)?;
     }
     if let Some(date) = &metadata.date {
-        writeln!(writer, "Date: {date}")?;
+        write_field(&mut writer, "Date", date)?;
     }
+    Ok(())
+}
+
+fn write_book_summary(
+    mut writer: impl Write,
+    index: usize,
+    result: &SearchResult,
+) -> anyhow::Result<()> {
+    let metadata = &result.document.metadata;
+    let fallback_name = result
+        .document
+        .source_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("<unknown>");
+    let title = metadata.title.as_deref().unwrap_or(fallback_name);
+
+    writeln!(
+        writer,
+        "{CYAN}{BOLD}[{index}] {title}{RESET} {DIM}{} match(es){RESET}",
+        result.matches.len()
+    )?;
+    write_metadata(&mut writer, result)?;
+    if metadata.title.is_none() {
+        write_field(&mut writer, "Title", fallback_name)?;
+    }
+    write_field(
+        &mut writer,
+        "File",
+        &result.document.source_path.display().to_string(),
+    )?;
+    write_field(
+        &mut writer,
+        "Format",
+        &format!("{:?}", result.document.format),
+    )?;
+    Ok(())
+}
+
+fn write_matches(mut writer: impl Write, result: &SearchResult) -> anyhow::Result<()> {
+    if result.matches.is_empty() {
+        return Ok(());
+    }
+
+    writeln!(writer, "  {MAGENTA}{BOLD}Matches{RESET}")?;
+    for (index, hit) in result.matches.iter().enumerate() {
+        write!(writer, "  {DIM}{}.{RESET} ", index + 1)?;
+        if let Some(page) = hit.page {
+            write!(writer, "{YELLOW}Page {page}{RESET} ")?;
+        }
+        if let Some(chapter) = &hit.chapter {
+            write!(writer, "{YELLOW}{chapter}{RESET} ")?;
+        }
+        writeln!(
+            writer,
+            "... {}{BOLD}{GREEN}{}{RESET}{} ...",
+            hit.before, hit.text, hit.after
+        )?;
+    }
+    Ok(())
+}
+
+fn write_field(mut writer: impl Write, label: &str, value: &str) -> anyhow::Result<()> {
+    writeln!(writer, "  {BLUE}{BOLD}{label:<9}{RESET} {value}")?;
     Ok(())
 }
 
