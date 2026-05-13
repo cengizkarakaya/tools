@@ -1060,16 +1060,8 @@ fn print_report(networks: &[WifiNetwork]) {
         );
 
         println!(
-            "   {DIM}{:<17} {:<28} {:>7} {:<8} {:<6} {:<10} {:>7} {:<12}{}{RESET}",
-            "BSSID",
-            "Cihaz kimliği",
-            "Sinyal",
-            "Band",
-            "Kanal",
-            "Wi-Fi",
-            "İstemci",
-            "Kanal yükü",
-            "Hızlar"
+            "   {DIM}{:<17} {:<28} {:>7} {:<8} {:<6} {:<10} {:>7} {:<12}Hızlar{RESET}",
+            "BSSID", "Cihaz kimliği", "Sinyal", "Band", "Kanal", "Wi-Fi", "İstemci", "Kanal yükü"
         );
 
         for network in &row.networks {

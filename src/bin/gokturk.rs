@@ -25,39 +25,237 @@ struct TableRow {
 }
 
 const TABLE: &[TableRow] = &[
-    TableRow { latin: "a", old_turkic: '𐰀', code: "U+10C00", unicode_name: "OLD TURKIC LETTER ORKHON A", note: "kalın ünlü" },
-    TableRow { latin: "e", old_turkic: '𐰅', code: "U+10C05", unicode_name: "OLD TURKIC LETTER YENISEI E", note: "ince ünlü; yaklaşık kullanım" },
-    TableRow { latin: "ı/i", old_turkic: '𐰃', code: "U+10C03", unicode_name: "OLD TURKIC LETTER ORKHON I", note: "modern ı/i için yaklaşık kullanım" },
-    TableRow { latin: "o/u", old_turkic: '𐰆', code: "U+10C06", unicode_name: "OLD TURKIC LETTER ORKHON O", note: "modern o/u için yaklaşık kullanım" },
-    TableRow { latin: "ö/ü", old_turkic: '𐰇', code: "U+10C07", unicode_name: "OLD TURKIC LETTER ORKHON OE", note: "modern ö/ü için yaklaşık kullanım" },
-    TableRow { latin: "b¹", old_turkic: '𐰉', code: "U+10C09", unicode_name: "OLD TURKIC LETTER ORKHON AB", note: "kalın çevre" },
-    TableRow { latin: "b²", old_turkic: '𐰋', code: "U+10C0B", unicode_name: "OLD TURKIC LETTER ORKHON AEB", note: "ince çevre" },
-    TableRow { latin: "g/ğ¹", old_turkic: '𐰍', code: "U+10C0D", unicode_name: "OLD TURKIC LETTER ORKHON AG", note: "kalın çevre" },
-    TableRow { latin: "g/ğ²", old_turkic: '𐰏', code: "U+10C0F", unicode_name: "OLD TURKIC LETTER ORKHON AEG", note: "ince çevre" },
-    TableRow { latin: "d¹", old_turkic: '𐰑', code: "U+10C11", unicode_name: "OLD TURKIC LETTER ORKHON AD", note: "kalın çevre" },
-    TableRow { latin: "d²", old_turkic: '𐰓', code: "U+10C13", unicode_name: "OLD TURKIC LETTER ORKHON AED", note: "ince çevre" },
-    TableRow { latin: "z", old_turkic: '𐰔', code: "U+10C14", unicode_name: "OLD TURKIC LETTER ORKHON EZ", note: "yaklaşık kullanım" },
-    TableRow { latin: "y¹", old_turkic: '𐰖', code: "U+10C16", unicode_name: "OLD TURKIC LETTER ORKHON AY", note: "kalın çevre" },
-    TableRow { latin: "y²", old_turkic: '𐰘', code: "U+10C18", unicode_name: "OLD TURKIC LETTER ORKHON AEY", note: "ince çevre" },
-    TableRow { latin: "k/q¹", old_turkic: '𐰴', code: "U+10C34", unicode_name: "OLD TURKIC LETTER ORKHON AQ", note: "kalın k/q" },
-    TableRow { latin: "k²", old_turkic: '𐰚', code: "U+10C1A", unicode_name: "OLD TURKIC LETTER ORKHON AEK", note: "ince k" },
-    TableRow { latin: "l¹", old_turkic: '𐰞', code: "U+10C1E", unicode_name: "OLD TURKIC LETTER ORKHON AL", note: "kalın çevre" },
-    TableRow { latin: "l²", old_turkic: '𐰠', code: "U+10C20", unicode_name: "OLD TURKIC LETTER ORKHON AEL", note: "ince çevre" },
-    TableRow { latin: "m", old_turkic: '𐰢', code: "U+10C22", unicode_name: "OLD TURKIC LETTER ORKHON EM", note: "yaklaşık kullanım" },
-    TableRow { latin: "n¹", old_turkic: '𐰣', code: "U+10C23", unicode_name: "OLD TURKIC LETTER ORKHON AN", note: "kalın çevre" },
-    TableRow { latin: "n²", old_turkic: '𐰤', code: "U+10C24", unicode_name: "OLD TURKIC LETTER ORKHON AEN", note: "ince çevre" },
-    TableRow { latin: "ng/ŋ", old_turkic: '𐰭', code: "U+10C2D", unicode_name: "OLD TURKIC LETTER ORKHON ENG", note: "velar nazal" },
-    TableRow { latin: "p", old_turkic: '𐰯', code: "U+10C2F", unicode_name: "OLD TURKIC LETTER ORKHON EP", note: "yaklaşık kullanım" },
-    TableRow { latin: "ç/c", old_turkic: '𐰲', code: "U+10C32", unicode_name: "OLD TURKIC LETTER ORKHON EC", note: "modern ç/c için yaklaşık kullanım" },
-    TableRow { latin: "r¹", old_turkic: '𐰺', code: "U+10C3A", unicode_name: "OLD TURKIC LETTER ORKHON AR", note: "kalın çevre" },
-    TableRow { latin: "r²", old_turkic: '𐰼', code: "U+10C3C", unicode_name: "OLD TURKIC LETTER ORKHON AER", note: "ince çevre" },
-    TableRow { latin: "s¹", old_turkic: '𐰽', code: "U+10C3D", unicode_name: "OLD TURKIC LETTER ORKHON AS", note: "kalın çevre" },
-    TableRow { latin: "s²", old_turkic: '𐰾', code: "U+10C3E", unicode_name: "OLD TURKIC LETTER ORKHON AES", note: "ince çevre" },
-    TableRow { latin: "ş¹", old_turkic: '𐰿', code: "U+10C3F", unicode_name: "OLD TURKIC LETTER ORKHON ASH", note: "kalın çevre" },
-    TableRow { latin: "ş²", old_turkic: '𐱁', code: "U+10C41", unicode_name: "OLD TURKIC LETTER ORKHON ESH", note: "ince çevre" },
-    TableRow { latin: "t¹", old_turkic: '𐱃', code: "U+10C43", unicode_name: "OLD TURKIC LETTER ORKHON AT", note: "kalın çevre" },
-    TableRow { latin: "t²", old_turkic: '𐱅', code: "U+10C45", unicode_name: "OLD TURKIC LETTER ORKHON AET", note: "ince çevre" },
-    TableRow { latin: "ayırıcı", old_turkic: '⁚', code: "U+205A", unicode_name: "TWO DOT PUNCTUATION", note: "kelime ayırıcı olarak kullanılabilir; Old Turkic bloğunda değildir" },
+    TableRow {
+        latin: "a",
+        old_turkic: '𐰀',
+        code: "U+10C00",
+        unicode_name: "OLD TURKIC LETTER ORKHON A",
+        note: "kalın ünlü",
+    },
+    TableRow {
+        latin: "e",
+        old_turkic: '𐰅',
+        code: "U+10C05",
+        unicode_name: "OLD TURKIC LETTER YENISEI E",
+        note: "ince ünlü; yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "ı/i",
+        old_turkic: '𐰃',
+        code: "U+10C03",
+        unicode_name: "OLD TURKIC LETTER ORKHON I",
+        note: "modern ı/i için yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "o/u",
+        old_turkic: '𐰆',
+        code: "U+10C06",
+        unicode_name: "OLD TURKIC LETTER ORKHON O",
+        note: "modern o/u için yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "ö/ü",
+        old_turkic: '𐰇',
+        code: "U+10C07",
+        unicode_name: "OLD TURKIC LETTER ORKHON OE",
+        note: "modern ö/ü için yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "b¹",
+        old_turkic: '𐰉',
+        code: "U+10C09",
+        unicode_name: "OLD TURKIC LETTER ORKHON AB",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "b²",
+        old_turkic: '𐰋',
+        code: "U+10C0B",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEB",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "g/ğ¹",
+        old_turkic: '𐰍',
+        code: "U+10C0D",
+        unicode_name: "OLD TURKIC LETTER ORKHON AG",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "g/ğ²",
+        old_turkic: '𐰏',
+        code: "U+10C0F",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEG",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "d¹",
+        old_turkic: '𐰑',
+        code: "U+10C11",
+        unicode_name: "OLD TURKIC LETTER ORKHON AD",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "d²",
+        old_turkic: '𐰓',
+        code: "U+10C13",
+        unicode_name: "OLD TURKIC LETTER ORKHON AED",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "z",
+        old_turkic: '𐰔',
+        code: "U+10C14",
+        unicode_name: "OLD TURKIC LETTER ORKHON EZ",
+        note: "yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "y¹",
+        old_turkic: '𐰖',
+        code: "U+10C16",
+        unicode_name: "OLD TURKIC LETTER ORKHON AY",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "y²",
+        old_turkic: '𐰘',
+        code: "U+10C18",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEY",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "k/q¹",
+        old_turkic: '𐰴',
+        code: "U+10C34",
+        unicode_name: "OLD TURKIC LETTER ORKHON AQ",
+        note: "kalın k/q",
+    },
+    TableRow {
+        latin: "k²",
+        old_turkic: '𐰚',
+        code: "U+10C1A",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEK",
+        note: "ince k",
+    },
+    TableRow {
+        latin: "l¹",
+        old_turkic: '𐰞',
+        code: "U+10C1E",
+        unicode_name: "OLD TURKIC LETTER ORKHON AL",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "l²",
+        old_turkic: '𐰠',
+        code: "U+10C20",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEL",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "m",
+        old_turkic: '𐰢',
+        code: "U+10C22",
+        unicode_name: "OLD TURKIC LETTER ORKHON EM",
+        note: "yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "n¹",
+        old_turkic: '𐰣',
+        code: "U+10C23",
+        unicode_name: "OLD TURKIC LETTER ORKHON AN",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "n²",
+        old_turkic: '𐰤',
+        code: "U+10C24",
+        unicode_name: "OLD TURKIC LETTER ORKHON AEN",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "ng/ŋ",
+        old_turkic: '𐰭',
+        code: "U+10C2D",
+        unicode_name: "OLD TURKIC LETTER ORKHON ENG",
+        note: "velar nazal",
+    },
+    TableRow {
+        latin: "p",
+        old_turkic: '𐰯',
+        code: "U+10C2F",
+        unicode_name: "OLD TURKIC LETTER ORKHON EP",
+        note: "yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "ç/c",
+        old_turkic: '𐰲',
+        code: "U+10C32",
+        unicode_name: "OLD TURKIC LETTER ORKHON EC",
+        note: "modern ç/c için yaklaşık kullanım",
+    },
+    TableRow {
+        latin: "r¹",
+        old_turkic: '𐰺',
+        code: "U+10C3A",
+        unicode_name: "OLD TURKIC LETTER ORKHON AR",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "r²",
+        old_turkic: '𐰼',
+        code: "U+10C3C",
+        unicode_name: "OLD TURKIC LETTER ORKHON AER",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "s¹",
+        old_turkic: '𐰽',
+        code: "U+10C3D",
+        unicode_name: "OLD TURKIC LETTER ORKHON AS",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "s²",
+        old_turkic: '𐰾',
+        code: "U+10C3E",
+        unicode_name: "OLD TURKIC LETTER ORKHON AES",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "ş¹",
+        old_turkic: '𐰿',
+        code: "U+10C3F",
+        unicode_name: "OLD TURKIC LETTER ORKHON ASH",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "ş²",
+        old_turkic: '𐱁',
+        code: "U+10C41",
+        unicode_name: "OLD TURKIC LETTER ORKHON ESH",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "t¹",
+        old_turkic: '𐱃',
+        code: "U+10C43",
+        unicode_name: "OLD TURKIC LETTER ORKHON AT",
+        note: "kalın çevre",
+    },
+    TableRow {
+        latin: "t²",
+        old_turkic: '𐱅',
+        code: "U+10C45",
+        unicode_name: "OLD TURKIC LETTER ORKHON AET",
+        note: "ince çevre",
+    },
+    TableRow {
+        latin: "ayırıcı",
+        old_turkic: '⁚',
+        code: "U+205A",
+        unicode_name: "TWO DOT PUNCTUATION",
+        note: "kelime ayırıcı olarak kullanılabilir; Old Turkic bloğunda değildir",
+    },
 ];
 
 fn main() {
@@ -73,7 +271,9 @@ fn main() {
         return;
     }
 
-    let use_separator = args.iter().any(|arg| arg == "--ayirici" || arg == "--separator");
+    let use_separator = args
+        .iter()
+        .any(|arg| arg == "--ayirici" || arg == "--separator");
     let input = args
         .iter()
         .filter(|arg| !matches!(arg.as_str(), "--ayirici" | "--separator"))
@@ -99,7 +299,10 @@ fn print_usage() {
 
 fn print_table() {
     println!("Old Turkic / Orhun Yaklaşık Karakter Tablosu\n");
-    println!("{:<10} {:<4} {:<10} {:<45} Not", "Latin", "Harf", "Kod", "Unicode adı");
+    println!(
+        "{:<10} {:<4} {:<10} {:<45} Not",
+        "Latin", "Harf", "Kod", "Unicode adı"
+    );
     println!("{}", "-".repeat(95));
 
     for row in TABLE {
@@ -110,7 +313,9 @@ fn print_table() {
     }
 
     println!("\nDesteklenmeyen modern harfler: f, h, j, v, x, w");
-    println!("Rakamlar: Old Turkic bloğunda 1-10 gibi ayrı rakam sembolleri yoktur; bu program rakamları aynen bırakır.");
+    println!(
+        "Rakamlar: Old Turkic bloğunda 1-10 gibi ayrı rakam sembolleri yoktur; bu program rakamları aynen bırakır."
+    );
     println!("Noktalama: Modern . , ! ? işaretleri aynen bırakılır.");
 }
 
@@ -221,7 +426,22 @@ fn vowel_class(ch: char) -> Option<VowelClass> {
 fn is_punctuation(ch: char) -> bool {
     matches!(
         ch,
-        '.' | ',' | ';' | ':' | '!' | '?' | '\'' | '"' | '(' | ')' | '[' | ']' | '{' | '}' | '-' | '—' | '–'
+        '.' | ','
+            | ';'
+            | ':'
+            | '!'
+            | '?'
+            | '\''
+            | '"'
+            | '('
+            | ')'
+            | '['
+            | ']'
+            | '{'
+            | '}'
+            | '-'
+            | '—'
+            | '–'
     )
 }
 
