@@ -19,3 +19,6 @@ members = ["lib"]
 clap = "4.6.1"
 reqwest = { version = "0.13.3", features = ["blocking", "json", "rustls"] }
 serde = { version = "1.0.228", features = ["derive"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_NetworkManagement_WiFi"] }
