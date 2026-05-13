@@ -2,7 +2,7 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-
+ 
 use directories::ProjectDirs;
 use sha2::{Digest, Sha256};
 
